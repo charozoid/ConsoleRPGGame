@@ -17,6 +17,12 @@ class Game
 
         Player player = new Player(3, 3, "C");
         actors.Add(player);
+
+        Weapon sword = new Weapon(0, "Iron Sword", false);
+        Item gold = new Item(1, "Gold coins", true);
+
+        player.GiveItem(sword, 1);
+        player.GiveItem(gold, 500);
         bool quit = false;
 
         while (!quit)
@@ -114,14 +120,18 @@ class Graphics
 
         Console.SetCursorPosition(0, mapArray.GetLength(1) + 1);
         Console.WriteLine("1.Control Player");
+        Console.WriteLine("2.Show inventory");
         Console.Write("Make choice:");
 
-        int choice = PromptValidChoice(1, 1);
+        int choice = PromptValidChoice(1, 2);
 
         switch (choice)
         {
             case 1:
                 MovePlayer(player);
+                break;
+            case 2:
+                PrintInventory(player);
                 break;
         }
     }
@@ -183,6 +193,66 @@ class Graphics
             Console.Write(actors.model);
         }
     }
+    public void PrintInventory(Player player)
+    {
+        Console.Clear();
+        int count = 1;
+        foreach (Item items in player.inventory)
+        {
+            if (items.stackable)
+            {
+                Console.Write($"{count}.{items.name} X {items.quantity}\n");
+            }
+            else
+            {
+                Console.Write($"{count}.{items.name}\n");
+            }
+            count++;
+        }
+        Console.ReadKey();
+        Menu(player);
+    }
+}
+class Item
+{
+    public int weight = 0;
+    public int price = 0;
+    public string name = "";
+    public int id = 0;
+    public bool stackable = false;
+    public int quantity = 0;
+    public Item(int id, string name, bool stackable)
+    {
+        this.id = id;
+        this.name = name;
+        this.stackable = stackable;
+    }
+    public void OnUse()
+    {
+
+    }
+}
+class Weapon : Item
+{
+    public int strRequirements = 0;
+    public int attackBonus = 0;
+
+    public Weapon(int id, string name, bool stackable) : base(id, name, stackable)
+    {
+        this.id = id;
+        this.name = name;
+        this.stackable = stackable;       
+    }
+
+}
+class Armor : Item
+{
+    public Armor(int id, string name, bool stackable) : base(id, name, stackable)
+    {
+        this.id = id;
+        this.name = name;
+        this.stackable = stackable;
+    }
 }
 
 class Actor
@@ -210,13 +280,34 @@ class Player : Actor
 {
     int weapon = 0;
     int armor = 0;
+    const int INVENTORY_SIZE = 10;
+    public List<Item> inventory = new List<Item>();
     public Player(int x, int y, string model)
     {
         this.x = x;
         this.y = y;
         this.model = model;
     }
-
+    public void GiveItem(Item item, int quantity)
+    {
+        foreach (Item items in inventory)
+        {
+            if (items.id == item.id && item.stackable)
+            {
+                items.quantity += quantity;
+                return;
+            }
+        }
+        if (inventory.Count == INVENTORY_SIZE)
+        {
+            Console.WriteLine("Inventory full");
+        }
+        else
+        {
+            item.quantity = quantity;
+            inventory.Add(item);
+        }
+    }
     public Game.Direction GetDirectionInput()
     {
         ConsoleKeyInfo keyInfo;
