@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPGGame", "RPGGame\RPGGame.csproj", "{93AF556E-9347-423A-ACE3-228A65447912}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RPGGame", "RPGGame\RPGGame.csproj", "{93AF556E-9347-423A-ACE3-228A65447912}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E02AF122-C4C7-44D1-8E6B-3969723C2735}"
+	ProjectSection(SolutionItems) = preProject
+		RPGGame\bin\Assets\Fonts\arialbd.ttf = RPGGame\bin\Assets\Fonts\arialbd.ttf
+		RPGGame\bin\Assets\tileset.png = RPGGame\bin\Assets\tileset.png
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

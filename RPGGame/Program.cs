@@ -27,9 +27,12 @@ class Game
         window.SetVerticalSyncEnabled(true);
         window.Closed += (sender, args) => window.Close();
         Font font = new Font("../../Assets/Fonts/arial.ttf");
+        Texture tileset = new Texture("../../Assets/tileset.png");
+        Sprite sprite = new Sprite(tileset);
+        IntRect textureRect = new IntRect(16, 16, 16, 16);
         while (window.IsOpen)
         {
-            window.Clear(Color.Blue);
+            window.Clear(Color.Black);
             window.DispatchEvents();
 
             Vector2f vector2 = new Vector2f(-1, -12);
@@ -37,7 +40,11 @@ class Game
             textContent.Position = vector2;
             textContent.FillColor = Color.White;
             
+            sprite.TextureRect = textureRect;
+
             window.Draw(textContent);
+            window.Draw(sprite);
+            
             
             
             window.Display();
@@ -78,7 +85,6 @@ class Graphics2D
         return window;
     }
 }
-
 class Graphics
 {
     //public Dictionary<string, int> Map = new Dictionary<string, int>();
@@ -300,12 +306,8 @@ class Armor : Item
         this.stackable = stackable;
     }
 }
-
-class Actor
+class Actor : Entity
 {
-    public int x = 0;
-    public int y = 0;
-    public string model = "";
     int hp = 0;
     int strength = 0;
     int intelligence = 0;
@@ -385,4 +387,10 @@ class Monster : Actor
 class Npc : Actor
 {
 
+}
+class Entity
+{
+    public string model = "";
+    public int x = 0;
+    public int y = 0;
 }
