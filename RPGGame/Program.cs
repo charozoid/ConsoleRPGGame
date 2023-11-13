@@ -1,10 +1,18 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
+using System.Numerics;
 using System.Reflection.PortableExecutable;
+using SFML.Graphics;
+using SFML.Window;
+using SFML.System;
+using System.Text.Encodings.Web;
 
 class Game
 {
+    const int WIDTH = 640;
+    const int HEIGHT = 480;
+    const string TITLE = "Game";
     public enum Direction
     {
         Up, Down, Left, Right, Default   
@@ -12,7 +20,29 @@ class Game
     public static List<Actor> actors = new List<Actor>();
     public static void Main(string[] args)
     {
-        Graphics graphics = new Graphics();
+
+        VideoMode mode = new VideoMode(WIDTH, HEIGHT);
+        RenderWindow window = new RenderWindow(mode, TITLE);
+
+        window.SetVerticalSyncEnabled(true);
+        window.Closed += (sender, args) => window.Close();
+        Font font = new Font("../../Assets/Fonts/arial.ttf");
+        while (window.IsOpen)
+        {
+            window.Clear(Color.Blue);
+            window.DispatchEvents();
+
+            Vector2f vector2 = new Vector2f(-1, -12);
+            Text textContent = new Text("╗", font, 24);
+            textContent.Position = vector2;
+            textContent.FillColor = Color.White;
+            
+            window.Draw(textContent);
+            
+            
+            window.Display();
+        }
+        /*Graphics graphics = new Graphics();
         graphics.ImportMap();
 
         Player player = new Player(3, 3, "C");
@@ -28,9 +58,25 @@ class Game
         while (!quit)
         {
             graphics.Menu(player);
-        }
+        }*/
     }
 
+}
+class Graphics2D
+{
+    const int WIDTH = 640;
+    const int HEIGHT = 480;
+    const string TITLE = "Game";
+    public RenderWindow CreateWindow()
+    {
+        VideoMode mode = new VideoMode(WIDTH, HEIGHT);
+        RenderWindow window = new RenderWindow(mode, TITLE);
+
+        window.SetVerticalSyncEnabled(true);
+        window.Closed += (sender, args) => window.Close();
+
+        return window;
+    }
 }
 
 class Graphics
