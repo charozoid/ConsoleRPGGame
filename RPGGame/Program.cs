@@ -122,10 +122,6 @@ class Graphics2D
     }
     public void DrawActor(Actor actor)
     {
-        if (tiles[actor.x, actor.y].sprite != null)
-        {
-
-        }
         Sprite sprite = new Sprite(tileset);
         sprite.TextureRect = GridToIntRect(actor.spritex, actor.spritey);
         sprite.Position = new Vector2f(actor.x * 16, actor.y * 16);
