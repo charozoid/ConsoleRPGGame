@@ -20,11 +20,9 @@ class Game
     {
 
         Graphics2D graphics2D = new Graphics2D();
-        graphics2D.window.SetVerticalSyncEnabled(true);
-        graphics2D.window.Closed += (sender, args) => graphics2D.window.Close();
+
         Player player = new Player(2, 2);
         graphics2D.player = player;
-        Console.WriteLine(graphics2D.player.x);
 
         while (graphics2D.window.IsOpen)
         {
@@ -49,7 +47,7 @@ class Graphics2D
     public Font font;
     private Texture tileset;
     private IntRect[] grassRects = new IntRect[2];
-    private Color[] grassColors = new Color[2];
+    private Color[] grassColors = new Color[3];
     public Player player;
     Tile[,] tiles = new Tile[64, 64];
     public Graphics2D()
@@ -57,11 +55,14 @@ class Graphics2D
         this.window = new RenderWindow(mode, TITLE);
         this.font = new Font("../../Assets/Fonts/arial.ttf");
         this.tileset = CreateMask(new Texture("../../Assets/tileset.png"));
+        window.SetVerticalSyncEnabled(true);
+        window.Closed += (sender, args) => window.Close();
         ImportMap();
         grassRects[0] = GridToIntRect(7, 2);
         grassRects[1] = GridToIntRect(12, 2);
         grassColors[0] = new Color(34, 123, 0, 255);
         grassColors[1] = new Color(40, 225, 0, 255);
+        grassColors[2] = new Color(40, 180, 0, 255);
         //CreateEmptiness();
 
     }
@@ -215,10 +216,9 @@ class Tile
         if (type == Type.Grass)
         {
             this.spriteVariation = random.Next(2);
-            this.colorVariation = random.Next(2);
+            this.colorVariation = random.Next(3);
             this.positionVariation = random.Next(2);
             this.intRectVariation = random.Next(4); 
-
         }
     }
 }
@@ -318,29 +318,6 @@ class Player : Actor
             item.quantity = quantity;
             inventory.Add(item);
         }
-    }
-    public Game.Direction GetDirectionInput()
-    {
-        ConsoleKeyInfo keyInfo;
-        do
-        {
-            Console.SetCursorPosition(x, y);
-            keyInfo = Console.ReadKey(true);
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.UpArrow:
-                    return Game.Direction.Up;
-                case ConsoleKey.DownArrow:
-                    return Game.Direction.Down;
-                case ConsoleKey.LeftArrow:
-                    return Game.Direction.Left;
-                case ConsoleKey.RightArrow:
-                    return Game.Direction.Right;
-            }
-        }
-        while (keyInfo.Key != ConsoleKey.Q);
-        return Game.Direction.Default;
     }
 
 }
