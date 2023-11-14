@@ -7,6 +7,7 @@ using SFML.Graphics;
 using SFML.Window;
 using SFML.System;
 using System.Text.Encodings.Web;
+using System.Security.AccessControl;
 
 class Game
 {
@@ -21,33 +22,24 @@ class Game
     public static void Main(string[] args)
     {
 
-        VideoMode mode = new VideoMode(WIDTH, HEIGHT);
-        RenderWindow window = new RenderWindow(mode, TITLE);
+        Graphics2D graphics2D = new Graphics2D();
+        graphics2D.window.SetVerticalSyncEnabled(true);
+        graphics2D.window.Closed += (sender, args) => graphics2D.window.Close();
+        Player player = new Player(3, 3);
+        player.spritex = 0;
+        player.spritey = 4;
 
-        window.SetVerticalSyncEnabled(true);
-        window.Closed += (sender, args) => window.Close();
-        Font font = new Font("../../Assets/Fonts/arial.ttf");
-        Texture tileset = new Texture("../../Assets/tileset.png");
-        Sprite sprite = new Sprite(tileset);
-        IntRect textureRect = new IntRect(16, 16, 16, 16);
-        while (window.IsOpen)
+        while (graphics2D.window.IsOpen)
         {
-            window.Clear(Color.Black);
-            window.DispatchEvents();
+            graphics2D.window.Clear(Color.Black);
+            graphics2D.window.DispatchEvents();
+            graphics2D.DrawWalls();
+            Tile corner = new Tile(0, 0, Tile.Type.Wall);
+            corner.wallType = 1;
+            graphics2D.DrawTile(corner);
+            graphics2D.DrawActor(player);
+            graphics2D.window.Display();
 
-            Vector2f vector2 = new Vector2f(-1, -12);
-            Text textContent = new Text("╗", font, 24);
-            textContent.Position = vector2;
-            textContent.FillColor = Color.White;
-            
-            sprite.TextureRect = textureRect;
-
-            window.Draw(textContent);
-            window.Draw(sprite);
-            
-            
-            
-            window.Display();
         }
         /*Graphics graphics = new Graphics();
         graphics.ImportMap();
@@ -74,21 +66,133 @@ class Graphics2D
     const int WIDTH = 640;
     const int HEIGHT = 480;
     const string TITLE = "Game";
-    public RenderWindow CreateWindow()
+    public static VideoMode mode = new VideoMode(WIDTH, HEIGHT);
+    public Dictionary<Tile.Type, IntRect> typeRect = new Dictionary<Tile.Type, IntRect>();
+    public RenderWindow window;
+    public Font font;
+    private Texture tileset;
+    Tile[,] tiles = new Tile[64,64];
+    public Graphics2D()
     {
-        VideoMode mode = new VideoMode(WIDTH, HEIGHT);
-        RenderWindow window = new RenderWindow(mode, TITLE);
+        this.window = new RenderWindow(mode, TITLE);
+        this.font = new Font("../../Assets/Fonts/arial.ttf");
+        this.tileset = CreateMask(new Texture("../../Assets/tileset.png"));
+        CreateEmptiness();
+    }
+    public void CreateEmptiness()
+    {
+        for (int i = 0; i < 64; i++)
+        {
+            for (int j = 0; j < 64; j++)
+            {
+                tiles[j, i] = new Tile(i, j, Tile.Type.Empty);
+            }
 
-        window.SetVerticalSyncEnabled(true);
-        window.Closed += (sender, args) => window.Close();
+        }
+    }
+    public Texture CreateMask(Texture tileset)
+    {
+        Image img = tileset.CopyToImage();
+        img.CreateMaskFromColor(new Color(255, 0, 255, 255));
+        return new Texture(img);
+    }
+    public void DrawTile(Tile tile)
+    {
+        switch (tile.type)
+        {
+            case Tile.Type.Wall:
 
-        return window;
+                Sprite sprite = new Sprite(tileset);
+                sprite.Color = new Color(125, 125, 125, 255);
+                sprite.TextureRect = GridToIntRect(11, 13);
+                sprite.Position = new Vector2f(tile.x * 16, tile.y * 16);
+                window.Draw(sprite);
+                break;
+        }
+    }
+    public void DrawWall(Tile tile, int type)
+    {
+        Sprite sprite = new Sprite(tileset);
+        sprite.TextureRect = GridToIntRect(11, 13);
+        sprite.Position = new Vector2f(tile.x * 16, tile.y * 16);
+        window.Draw(sprite);
+    }
+    public IntRect GetWallSprite(Tile tile)
+    {
+        int x = tile.x;
+        int y = tile.y;
+        if (tiles[x + 1, y].type == Tile.Type.Wall)
+        {
+
+        }
+        return new IntRect();
+    }
+    public void DrawActor(Actor actor)
+    {
+            Sprite sprite = new Sprite(tileset);
+            sprite.TextureRect = GridToIntRect(actor.spritex, actor.spritey);
+            sprite.Position = new Vector2f(actor.x * 16, actor.y * 16);
+            sprite.Color = actor.spriteColor;
+            window.Draw(sprite);
+    }
+    public void DrawTiles()
+    {
+        for (int i = 0; i < 64; i++)
+        {
+            for (int j = 0; j < 64; j++)
+            {
+                DrawTile(tiles[i,j]);
+            }
+        }
+    }
+    public void DrawWalls()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            Tile tile = new Tile(i + 1, 0, Tile.Type.Wall);
+            tiles[i + 1, 0] = tile;
+            DrawTile(tile);
+        }
+    }
+    public void CreateTiles()
+    {
+        for (int i = 0; i < tiles.GetLength(0); i++)
+        {
+            for (int j = 0; j < tiles.GetLength(1); j++)
+            {
+                tiles[i,j] = new Tile(i, j, Tile.Type.Ground);
+            }
+        }
+    }
+    public IntRect GridToIntRect(int x, int y)
+    {
+        return new IntRect(x * 16, y * 16, 16, 16);
     }
 }
-class Graphics
+class Tile
 {
-    //public Dictionary<string, int> Map = new Dictionary<string, int>();
+    public enum Type
+    {
+        Empty, Ground, Wall 
+    }
 
+    public Sprite sprite;
+    public int x;
+    public int y;
+    public int spritex;
+    public int spritey;
+    public Type type;
+    public int wallType = 0;
+    public Tile(int x, int y, Type type)
+    {
+        this.x = x; 
+        this.y = y;
+        this.type = type;
+    }
+}
+
+/*class Graphics
+{
     string[,] mapArray;
     const int MAP_WIDTH = 10;
     const int MAP_HEIGHT = 3;
@@ -242,7 +346,6 @@ class Graphics
         foreach (Actor actors in Game.actors)
         {
             Console.SetCursorPosition(actors.x, actors.y);
-            Console.Write(actors.model);
         }
     }
     public void PrintInventory(Player player)
@@ -264,7 +367,7 @@ class Graphics
         Console.ReadKey();
         Menu(player);
     }
-}
+}*/
 class Item
 {
     public int weight = 0;
@@ -306,18 +409,23 @@ class Armor : Item
         this.stackable = stackable;
     }
 }
-class Actor : Entity
+class Actor
 {
     int hp = 0;
     int strength = 0;
     int intelligence = 0;
     int dexterity = 0;
+    public Color spriteColor = Color.White;
+    public int x = 0;
+    public int y = 0;
+    public int spritex = 0;
+    public int spritey = 0;
 
-    public void PrintActor()
+    /*public void PrintActor()
     {
         Console.SetCursorPosition(x, y);
         Console.WriteLine(model);
-    }
+    }*/
     public void Move(int x, int y)
     {
         this.x = x;
@@ -329,12 +437,13 @@ class Player : Actor
     int weapon = 0;
     int armor = 0;
     const int INVENTORY_SIZE = 10;
+    public const int SPRITEX = 0;
     public List<Item> inventory = new List<Item>();
-    public Player(int x, int y, string model)
+    public Player(int x, int y)
     {
         this.x = x;
         this.y = y;
-        this.model = model;
+        this.spriteColor = new Color(255, 204, 156, 255);
     }
     public void GiveItem(Item item, int quantity)
     {
@@ -379,6 +488,7 @@ class Player : Actor
         while ( keyInfo.Key != ConsoleKey.Q);
         return Game.Direction.Default;
     }
+
 }
 class Monster : Actor
 {
@@ -387,10 +497,4 @@ class Monster : Actor
 class Npc : Actor
 {
 
-}
-class Entity
-{
-    public string model = "";
-    public int x = 0;
-    public int y = 0;
 }
