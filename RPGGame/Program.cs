@@ -20,21 +20,15 @@ class Game
     {
 
         Graphics2D graphics2D = new Graphics2D();
-        graphics2D.window.SetVerticalSyncEnabled(true);
-        graphics2D.window.Closed += (sender, args) => graphics2D.window.Close();
-        Player player = new Player(3, 3);
-        graphics2D.player = player;
-        Console.WriteLine(graphics2D.player.x);
 
-        Tile grass = new Tile(0, 0, Tile.Type.Grass);
+        Player player = new Player(2, 2);
+        graphics2D.player = player;
+
         while (graphics2D.window.IsOpen)
         {
             graphics2D.window.Clear(Color.Black);
             graphics2D.window.DispatchEvents();
             graphics2D.DrawTiles();
-            graphics2D.DrawWalls();
-
-            graphics2D.DrawTile(grass);
             graphics2D.DrawActor(player);
             graphics2D.window.Display();
 
@@ -52,9 +46,8 @@ class Graphics2D
     public RenderWindow window;
     public Font font;
     private Texture tileset;
-
     private IntRect[] grassRects = new IntRect[2];
-    private Color[] grassColors = new Color[2];
+    private Color[] grassColors = new Color[3];
     public Player player;
     Tile[,] tiles = new Tile[64, 64];
     public Graphics2D()
@@ -62,12 +55,41 @@ class Graphics2D
         this.window = new RenderWindow(mode, TITLE);
         this.font = new Font("../../Assets/Fonts/arial.ttf");
         this.tileset = CreateMask(new Texture("../../Assets/tileset.png"));
+        window.SetVerticalSyncEnabled(true);
+        window.Closed += (sender, args) => window.Close();
+        ImportMap();
         grassRects[0] = GridToIntRect(7, 2);
         grassRects[1] = GridToIntRect(12, 2);
         grassColors[0] = new Color(34, 123, 0, 255);
         grassColors[1] = new Color(40, 225, 0, 255);
-        CreateEmptiness();
+        grassColors[2] = new Color(40, 180, 0, 255);
+        //CreateEmptiness();
 
+    }
+
+    public void ImportMap()
+    {
+        string mapPath = @"../../Assets/map.txt";
+
+        string[] lines = File.ReadAllLines(mapPath);
+
+        int rows = lines.Length;
+        int cols = lines[0].Split(',').Length;
+        for (int i = 0; i < rows; i++)
+        {
+            string[] values = lines[i].Split(",");
+            for (int j = 0; j < cols; j++)
+            {
+                try
+                {
+                    tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]));
+                }
+                catch
+                {
+                    Console.WriteLine("Map data is invalid");
+                }
+            }
+        }
     }
     public void CreateEmptiness()
     {
@@ -75,13 +97,21 @@ class Graphics2D
         {
             for (int j = 0; j < 64; j++)
             {
-                tiles[j, i] = new Tile(i, j, Tile.Type.Grass);
+                tiles[j, i] = new Tile(i, j, (Tile.Type)0);
             }
-
         }
     }
-    public IntRect ReverseRect(IntRect sprite)
+    public IntRect ReverseRect(IntRect sprite, int variation)
     {
+        switch (variation)
+        {
+            case 0:
+                return new IntRect(sprite.Left, sprite.Top + 16, 16, -16);
+            case 1:
+                return new IntRect(sprite.Left + 16, sprite.Top, -16, 16);
+            case 2:
+                return new IntRect(sprite.Left + 16, sprite.Top + 16, -16, -16);
+        }
         return new IntRect(sprite.Left + 16, sprite.Top + 16, -16, -16);
     }
     public Texture CreateMask(Texture tileset)
@@ -110,7 +140,7 @@ class Graphics2D
                 int randomTile = tile.positionVariation;
                 if (randomTile == 0)
                 {
-                    newTextureRect = ReverseRect(newTextureRect);
+                    newTextureRect = ReverseRect(newTextureRect, tile.intRectVariation);
                 }
                 sprite.Color = grassColors[tile.colorVariation];
                 sprite.TextureRect = newTextureRect;
@@ -156,7 +186,7 @@ class Tile
 {
     public enum Type
     {
-        Empty, Ground, Wall, Grass
+        Empty = 0, Ground = 1, Wall = 2, Grass = 3
     }
 
     public Sprite sprite;
@@ -168,6 +198,7 @@ class Tile
     public int colorVariation = 0;
     public int spriteVariation = 0;
     public int positionVariation = 0;
+    public int intRectVariation = 0;
     private Random random = new Random();
     public Vector2f GetPos()
     {
@@ -180,46 +211,13 @@ class Tile
         this.type = type;
         if (type == Type.Grass)
         {
-            spriteVariation = random.Next(2);
-            colorVariation = random.Next(2);
-            positionVariation = random.Next(2);
+            this.spriteVariation = random.Next(2);
+            this.colorVariation = random.Next(3);
+            this.positionVariation = random.Next(2);
+            this.intRectVariation = random.Next(4); 
         }
     }
 }
-
-/*class Graphics
-{
-    string[,] mapArray;
-    const int MAP_WIDTH = 10;
-    const int MAP_HEIGHT = 3;
-    const string SAVE_PATH = @"C:\game\";
-    public void ImportMap()
-    {
-        string mapPath = $"{SAVE_PATH}map.txt";
-
-        string[] lines = File.ReadAllLines(mapPath);
-
-        int rows = lines.Length;
-        int cols = lines[0].Split(',').Length;
-        mapArray = new string[cols, rows];
-        for (int i = 0; i < rows; i++)
-        {
-            string[] values = lines[i].Split(",");
-            for (int j = 0; j < cols; j++)
-            {
-                try
-                {
-                    mapArray[j, i] = values[j];
-                }
-                catch
-                {
-                    Console.WriteLine("Map data is invalid");
-                }
-            }
-        }
-    }
-
-}*/
 class Item
 {
     public int weight = 0;
@@ -316,29 +314,6 @@ class Player : Actor
             item.quantity = quantity;
             inventory.Add(item);
         }
-    }
-    public Game.Direction GetDirectionInput()
-    {
-        ConsoleKeyInfo keyInfo;
-        do
-        {
-            Console.SetCursorPosition(x, y);
-            keyInfo = Console.ReadKey(true);
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.UpArrow:
-                    return Game.Direction.Up;
-                case ConsoleKey.DownArrow:
-                    return Game.Direction.Down;
-                case ConsoleKey.LeftArrow:
-                    return Game.Direction.Left;
-                case ConsoleKey.RightArrow:
-                    return Game.Direction.Right;
-            }
-        }
-        while (keyInfo.Key != ConsoleKey.Q);
-        return Game.Direction.Default;
     }
 
 }
