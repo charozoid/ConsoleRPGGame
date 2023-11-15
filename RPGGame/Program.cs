@@ -175,16 +175,6 @@ class Graphics2D
             }
         }
     }
-    public void CreateEmptiness()
-    {
-        for (int i = 0; i < 64; i++)
-        {
-            for (int j = 0; j < 64; j++)
-            {
-                tiles[j, i] = new Tile(i, j, (Tile.Type)0);
-            }
-        }
-    }
     public IntRect ReverseRect(IntRect sprite, int variation)
     {
         switch (variation)
@@ -241,29 +231,6 @@ class Graphics2D
         sprite.Position = new Vector2f(320, 320);
         sprite.Color = actor.spriteColor;
         window.Draw(sprite);
-    }
-    public void DrawTiles()
-    {
-        for (int i = 0; i < 64; i++)
-        {
-            for (int j = 0; j < 64; j++)
-            {
-                DrawTile(tiles[i, j]);
-            }
-        }
-    }
-    public Vector2f GetRealVector2f(int y, int x)
-    {
-        return new Vector2f(x * 16, y * 16);
-    }
-    public void DrawWalls()
-    {
-        for (int i = 0; i < 10; i++)
-        {
-            Tile tile = new Tile(i + 1, 0, Tile.Type.Wall);
-            tiles[i + 1, 0] = tile;
-            DrawTile(tile);
-        }
     }
     public IntRect GridToIntRect(int x, int y)
     {
