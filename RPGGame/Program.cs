@@ -15,20 +15,19 @@ class Program
 
         while (game.graphics2D.window.IsOpen)
         {
-
             switch (game.state)
             {
                 case (Game.State.InGame):
                     game.graphics2D.window.Clear(Color.Black);
-                    game.graphics2D.DrawTilesAroundPlayer(game.player);
-                    game.graphics2D.DrawActor(game.player);
+                    game.graphics2D.DrawTilesAroundPlayer();
+                    game.graphics2D.DrawActor(Game.player);
                     break;
                 case (Game.State.MainMenu):
                     break;
             }           
             game.graphics2D.window.DispatchEvents();
             game.graphics2D.window.Display();
-            Console.WriteLine($"x : {game.player.x}, y : {game.player.y}");
+            Console.WriteLine($"x : {Game.player.x}, y : {Game.player.y}");
         }
     }
 }
@@ -48,18 +47,17 @@ class Game
     public List<Actor> actors = new List<Actor>();
 
     public State state = State.InGame;
-    public Player player = new Player(20, 20);
+    public static Player player = new Player(20,20);
     public Npc npc = new Npc(6, 2);
 
     public Graphics2D graphics2D;
-    public Random random = new Random();
+    public static Random random = new Random();
     public Game()
     {
         random = new Random();
-        graphics2D = new Graphics2D(player, random);
+        graphics2D = new Graphics2D();
         graphics2D.random = random;
         graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
-
         graphics2D.tiles[npc.x, npc.y].actor = npc;
         actors.Add(player);
         actors.Add(npc);
@@ -144,10 +142,11 @@ class Graphics2D
     public Random random;
     public Tile[,] tiles = new Tile[1024, 1024];
     public Dictionary<Tile.Type, IntRect> tileTexture = new Dictionary<Tile.Type, IntRect>();
-    public Graphics2D(Player player, Random gameRandom)
+    public Dictionary<int, IntRect> flagMap = new Dictionary<int, IntRect>();
+    public Graphics2D()
     {
-        this.player = player;
-        this.random = gameRandom;
+        player = Game.player;
+        random = Game.random;
         window = new RenderWindow(mode, TITLE);
         font = new Font("../../Assets/Fonts/arial.ttf");
         tileset = CreateMask(new Texture("../../Assets/tileset.png"));
@@ -158,12 +157,28 @@ class Graphics2D
         grassColors[1] = new Color(40, 180, 0, 255);
         grassColors[2] = new Color(40, 150, 0, 255);
         tileTexture[Tile.Type.Grass] = GridToIntRect(7, 2);
-        tileTexture[Tile.Type.Wall] = GridToIntRect(11, 13);
+        tileTexture[Tile.Type.Wall] = GridToIntRect(13, 12);
         tileTexture[Tile.Type.StoneGround] = GridToIntRect(4, 0);
 
+        flagMap[0b1000] = GridToIntRect(7, 13);
+        flagMap[0b0100] = GridToIntRect(8, 13);
+        flagMap[0b1001] = GridToIntRect(12, 11);
+        flagMap[0b1010] = GridToIntRect(10, 11);
+        flagMap[0b0011] = GridToIntRect(11, 11);
+        flagMap[0b0101] = GridToIntRect(13, 12);
+
+        IntRect[] wallTexture = new IntRect[6];
+        wallTexture[0] = GridToIntRect(13, 12);//Wall horizontal
+        wallTexture[1] = GridToIntRect(10, 11);//Wall vertical
+        wallTexture[2] = GridToIntRect(9, 12);//Top left corner
+        wallTexture[3] = GridToIntRect(11, 11);//Top right corner
+        wallTexture[4] = GridToIntRect(12, 11);//Bottom right corner
+        wallTexture[5] = GridToIntRect(8, 12);//Bottom left corner
+
     }
-    public void DrawTilesAroundPlayer(Player player)
+    public void DrawTilesAroundPlayer()
     {
+        Player player = Game.player;
         for (int i = player.x - 20; i < player.x + 20; i++)
         {
             for (int j = player.y - 20; j < player.y + 20; j++)
@@ -177,7 +192,7 @@ class Graphics2D
                 {
                     tiles[i, j].x = i - player.x + 20;
                     tiles[i, j].y = j - player.y + 20;
-                    DrawTile(tiles[i, j]);
+                    DrawTile(tiles[i, j], i, j);
                     if (tiles[i, j].actor != null)
                     {
                         if (tiles[i, j].actor.GetType() != typeof(Player))
@@ -227,13 +242,41 @@ class Graphics2D
         }
         return new IntRect(sprite.Left + 16, sprite.Top + 16, -16, -16);
     }
+
+    public int GetWallFlags(Tile tile, int x, int y)
+    {
+        int flags = 0b0000;
+        bool moveLeft = x - 1 >= 0;
+        bool moveRight = x + 1 < 128;
+        bool moveUp = y - 1 >= 0;
+        bool moveDown = y + 1 < 128;
+        if (moveUp && tiles[x, y - 1].type == Tile.Type.Wall)
+        {
+            flags = flags | 0b1000;
+        }
+        if (moveRight && tiles[x + 1, y].type == Tile.Type.Wall)
+        {
+            flags = flags | 0b0100;
+        }
+        if (moveDown && tiles[x, y + 1].type == Tile.Type.Wall)
+        {
+            flags = flags | 0b0010;
+        }
+        if (moveLeft && tiles[x - 1, y].type == Tile.Type.Wall)
+        {
+            flags = flags | 0b0001;
+        }
+
+
+        return flags; ;
+    }
     public Texture CreateMask(Texture tileset)
     {
         Image img = tileset.CopyToImage();
         img.CreateMaskFromColor(new Color(255, 0, 255, 255));
         return new Texture(img);
     }
-    public void DrawTile(Tile tile)
+    public void DrawTile(Tile tile, int x, int y)
     {
         if (tile.actor != null)
         {
@@ -247,8 +290,16 @@ class Graphics2D
                 sprite.TextureRect = tileTexture[Tile.Type.StoneGround];
                 break;
             case Tile.Type.Wall:
+                int flag = GetWallFlags(tiles[x, y], x, y);
+                if (flagMap.ContainsKey(flag))
+                {
+                    sprite.TextureRect = flagMap[flag];
+                }
+                else
+                {
+                    return;
+                }
                 sprite.Color = new Color(125, 125, 125, 255);
-                sprite.TextureRect = tileTexture[Tile.Type.Wall];
                 break;
             case Tile.Type.Grass:
                 IntRect newTextureRect = tileTexture[Tile.Type.Grass];
@@ -313,6 +364,8 @@ class Tile
     public int spriteVariation = 0;
     public int positionVariation = 0;
     public int intRectVariation = 0;
+    public int drawx = 0;
+    public int drawy = 0;
     public Actor actor;
     private Random random;
     public Vector2f GetPos()
@@ -327,13 +380,14 @@ class Tile
         this.random = gameRandom;
         if (type == Type.Grass)
         {
-            spriteVariation = random.Next(2);
-            colorVariation = random.Next(3);
-            positionVariation = random.Next(2);
-            intRectVariation = random.Next(4); 
+            spriteVariation = Game.random.Next(2);
+            colorVariation = Game.random.Next(3);
+            positionVariation = Game.random.Next(2);
+            intRectVariation = Game.random.Next(4); 
         }
     }
 }
+
 class Item
 {
     public int weight = 0;
@@ -347,6 +401,7 @@ class Item
         this.id = id;
         this.name = name;
         this.stackable = stackable;
+
     }
     public void OnUse()
     {
@@ -388,6 +443,10 @@ class Actor
     public int drawy = 0;
     public int spritex = 0;
     public int spritey = 0;
+    void Draw()
+    {
+
+    }
     public Vector2f GetPos()
     {
         return new Vector2f(x, y);
