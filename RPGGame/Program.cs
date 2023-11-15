@@ -20,7 +20,7 @@ class Program
             game.graphics2D.DrawTilesAroundPlayer(game.player);
             //graphics2D.DrawTile(testTile);
             game.graphics2D.DrawActor(game.player);
-            Console.WriteLine($"{game.player.x}, {game.player.y}");
+            //Console.WriteLine($"{game.player.x}, {game.player.y}");
 
 
 
@@ -196,10 +196,6 @@ class Graphics2D
     }
     public void DrawTile(Tile tile)
     {
-        if (tile.GetPos() == player.GetPos())
-        {
-            return;
-        }
         Sprite sprite = new Sprite(tileset);
         switch (tile.type)
         {
