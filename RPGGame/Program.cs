@@ -6,55 +6,122 @@ using System.Reflection.PortableExecutable;
 using SFML.Graphics;
 using SFML.Window;
 using SFML.System;
-using System.Text.Encodings.Web;
-using System.Security.AccessControl;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Game game = new Game();
+
+        while (game.graphics2D.window.IsOpen)
+        {
+            game.graphics2D.window.Clear(Color.Black);
+            game.graphics2D.window.DispatchEvents();
+            game.graphics2D.DrawTilesAroundPlayer(game.player);
+            //graphics2D.DrawTile(testTile);
+            game.graphics2D.DrawActor(game.player);
+            Console.WriteLine($"{game.player.x}, {game.player.y}");
+
+
+
+            game.graphics2D.window.Display();
+        }
+    }
+}
 
 class Game
 {
+    public const int GAME_SIZE = 128;
     public enum Direction
     {
         Up, Down, Left, Right, Default
     }
     public static List<Actor> actors = new List<Actor>();
-    public static void Main(string[] args)
+
+    public Player player = new Player(20, 20);
+    public Graphics2D graphics2D = new Graphics2D();
+    public Game()
     {
-
-        Graphics2D graphics2D = new Graphics2D();
-
-        Player player = new Player(2, 2);
+        graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
         graphics2D.player = player;
-
-        while (graphics2D.window.IsOpen)
-        {
-            graphics2D.window.Clear(Color.Black);
-            graphics2D.window.DispatchEvents();
-            graphics2D.DrawTiles();
-            graphics2D.DrawActor(player);
-            graphics2D.window.Display();
-
-        }
     }
 
+    public void KeyPressed(object sender, SFML.Window.KeyEventArgs e)
+    {
+        int x = player.x;
+        int y = player.y;
+        Tile[,] tiles = graphics2D.tiles;
+        switch (e.Code)
+        {
+            case Keyboard.Key.Up:
+                if (y == 0)
+                {
+                    return;
+                }
+                else if (tiles[x, y - 1].type == Tile.Type.Wall)
+                {
+                    return;
+                }
+                player.Move(x, y - 1);
+                Console.WriteLine("Moved");
+                break;
+            case Keyboard.Key.Down:
+                if (y + 1 == GAME_SIZE)
+                {
+                    return;               
+                }
+                else if (tiles[x, y + 1].type == Tile.Type.Wall)
+                {
+                    return;
+                }
+                player.Move(x, y + 1);
+                break;
+            case Keyboard.Key.Left:
+                if (x == 0)
+                {
+                    return;
+                }
+                else if (tiles[x - 1, y].type == Tile.Type.Wall)
+                {
+                    return;
+                }
+                player.Move(x - 1, y);
+                Console.WriteLine("Moved");
+                break;
+            case Keyboard.Key.Right:
+                if (x + 1 == GAME_SIZE)
+                {
+                    return;
+                }
+                else if (tiles[x + 1, y].type == Tile.Type.Wall)
+                {
+                    return;
+                }
+                player.Move(x + 1, y);
+                Console.WriteLine("Moved");
+                break;
+        }
+    }
 }
 class Graphics2D
 {
-    const int WIDTH = 640;
-    const int HEIGHT = 480;
+    const int WIDTH = 720;
+    const int HEIGHT = 640;
     const string TITLE = "Game";
-    public static VideoMode mode = new VideoMode(WIDTH, HEIGHT);
-    public Dictionary<Tile.Type, IntRect> typeRect = new Dictionary<Tile.Type, IntRect>();
+    private VideoMode mode = new VideoMode(WIDTH, HEIGHT);
+    private Dictionary<Tile.Type, IntRect> typeRect = new Dictionary<Tile.Type, IntRect>();
     public RenderWindow window;
-    public Font font;
+    private Font font;
     private Texture tileset;
     private IntRect[] grassRects = new IntRect[2];
     private Color[] grassColors = new Color[3];
     public Player player;
-    Tile[,] tiles = new Tile[64, 64];
+    public Tile[,] tiles = new Tile[1024, 1024];
     public Graphics2D()
     {
-        this.window = new RenderWindow(mode, TITLE);
-        this.font = new Font("../../Assets/Fonts/arial.ttf");
-        this.tileset = CreateMask(new Texture("../../Assets/tileset.png"));
+        window = new RenderWindow(mode, TITLE);
+        font = new Font("../../Assets/Fonts/arial.ttf");
+        tileset = CreateMask(new Texture("../../Assets/tileset.png"));
         window.SetVerticalSyncEnabled(true);
         window.Closed += (sender, args) => window.Close();
         ImportMap();
@@ -63,16 +130,33 @@ class Graphics2D
         grassColors[0] = new Color(34, 123, 0, 255);
         grassColors[1] = new Color(40, 225, 0, 255);
         grassColors[2] = new Color(40, 180, 0, 255);
-        //CreateEmptiness();
 
     }
+    public void DrawTilesAroundPlayer(Player player)
+    {
+        for (int i = player.x - 20; i < player.x + 19; i++)
+        {
+            for (int j = player.y - 20; j < player.y + 20; j++)
+            {
+                if (i < 0 || j < 0 || i > 127 || j > 127)
+                {
 
+
+                }
+                else
+                {
+                    tiles[i, j].x = i - player.x + 20;
+                    tiles[i, j].y = j - player.y + 20;
+                    DrawTile(tiles[i, j]);
+                }               
+            }
+        }
+    }
     public void ImportMap()
     {
         string mapPath = @"../../Assets/map.txt";
 
         string[] lines = File.ReadAllLines(mapPath);
-
         int rows = lines.Length;
         int cols = lines[0].Split(',').Length;
         for (int i = 0; i < rows; i++)
@@ -154,7 +238,7 @@ class Graphics2D
     {
         Sprite sprite = new Sprite(tileset);
         sprite.TextureRect = GridToIntRect(actor.spritex, actor.spritey);
-        sprite.Position = new Vector2f(actor.x * 16, actor.y * 16);
+        sprite.Position = new Vector2f(320, 320);
         sprite.Color = actor.spriteColor;
         window.Draw(sprite);
     }
@@ -167,6 +251,10 @@ class Graphics2D
                 DrawTile(tiles[i, j]);
             }
         }
+    }
+    public Vector2f GetRealVector2f(int y, int x)
+    {
+        return new Vector2f(x * 16, y * 16);
     }
     public void DrawWalls()
     {
@@ -211,10 +299,10 @@ class Tile
         this.type = type;
         if (type == Type.Grass)
         {
-            this.spriteVariation = random.Next(2);
-            this.colorVariation = random.Next(3);
-            this.positionVariation = random.Next(2);
-            this.intRectVariation = random.Next(4); 
+            spriteVariation = random.Next(2);
+            colorVariation = random.Next(3);
+            positionVariation = random.Next(2);
+            intRectVariation = random.Next(4); 
         }
     }
 }
@@ -291,9 +379,9 @@ class Player : Actor
     {
         this.x = x;
         this.y = y;
-        this.spritex = 0;
-        this.spritey = 4;
-        this.spriteColor = new Color(255, 204, 156, 255);
+        spritex = 0;
+        spritey = 4;
+        spriteColor = new Color(255, 204, 156, 255);
     }
     public void GiveItem(Item item, int quantity)
     {
@@ -315,7 +403,6 @@ class Player : Actor
             inventory.Add(item);
         }
     }
-
 }
 class Monster : Actor
 {
