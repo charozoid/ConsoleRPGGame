@@ -76,7 +76,7 @@ class Game
                 {
                     return;
                 }
-                else if (tiles[x, y - 1].type == Tile.Type.Wall)
+                else if (tiles[x, y - 1].type == Tile.Type.Wall || tiles[x, y - 1].actor != null)
                 {
                     return;
                 }
@@ -90,7 +90,7 @@ class Game
                 {
                     return;               
                 }
-                else if (tiles[x, y + 1].type == Tile.Type.Wall)
+                else if (tiles[x, y + 1].type == Tile.Type.Wall || tiles[x, y + 1].actor != null)
                 {
                     return;
                 }
@@ -103,7 +103,7 @@ class Game
                 {
                     return;
                 }
-                else if (tiles[x - 1, y].type == Tile.Type.Wall)
+                else if (tiles[x - 1, y].type == Tile.Type.Wall || tiles[x - 1, y].actor != null)
                 {
                     return;
                 }
@@ -117,7 +117,7 @@ class Game
                 {
                     return;
                 }
-                else if (tiles[x + 1, y].type == Tile.Type.Wall)
+                else if (tiles[x + 1, y].type == Tile.Type.Wall || tiles[x + 1, y].actor != null)
                 {
                     return;
                 }
