@@ -1,5 +1,5 @@
 ﻿using SFML.Window;
-
+using SFML.Graphics;
 class Game
 {
     public const int GAME_SIZE = 128;
@@ -16,8 +16,9 @@ class Game
     public List<Actor> actors = new List<Actor>();
 
     public State state = State.InGame;
-    public static Player player = new Player(20,20);
-    public Npc npc = new Npc(6, 2);
+    public static Player player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
+    public Npc npc = new Npc(6, 3, 2, 0, new Color(255, 204, 156, 255));
+    public Actor chest = new Actor(5, 3, 2, 9, new Color(200, 200, 20, 255));
 
     public Graphics2D graphics2D;
     public static Random random = new Random();
@@ -28,6 +29,7 @@ class Game
         graphics2D.random = random;
         graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
         graphics2D.tiles[npc.x, npc.y].actor = npc;
+        graphics2D.tiles[chest.x, chest.y].actor = chest;
         actors.Add(player);
         actors.Add(npc);
     }

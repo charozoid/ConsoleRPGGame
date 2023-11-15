@@ -16,8 +16,8 @@ class Program
             switch (game.state)
             {
                 case (Game.State.InGame):
-                    game.graphics2D.window.Clear(Color.Black);
-                    game.graphics2D.DrawTilesAroundPlayer();
+                    game.graphics2D.window.Clear(new Color(0, 0, 0, 255));
+                    game.graphics2D.DrawAroundPlayer();
                     game.graphics2D.DrawActor(Game.player);
                     break;
                 case (Game.State.MainMenu):

@@ -7,13 +7,13 @@ class Player : Actor
     const int INVENTORY_SIZE = 10;
     public const int SPRITEX = 0;
     public List<Item> inventory = new List<Item>();
-    public Player(int x, int y)
+    public Player(int posx, int posy, int spritex, int spritey, Color color) : base (posx, posy, spritex, spritey, color)
     {
-        this.x = x;
-        this.y = y;
-        spritex = 0;
-        spritey = 4;
-        spriteColor = new Color(255, 204, 156, 255);
+        x = posx;
+        y = posy;
+        this.spritex = spritex;
+        this.spritey = spritey;
+        spriteColor = color;
     }
     public void GiveItem(Item item, int quantity)
     {

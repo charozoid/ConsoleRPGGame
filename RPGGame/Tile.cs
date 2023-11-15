@@ -6,11 +6,12 @@ class Tile
 
     public enum Type
     {
-        Empty, 
-        Ground, 
-        Wall, 
-        Grass,
-        StoneGround
+        Empty, //0
+        Ground, //1
+        Wall, //2
+        Grass, //3
+        StoneGround,//4
+        Door //5
     }
 
     public Sprite sprite;
@@ -26,18 +27,19 @@ class Tile
     public int drawx = 0;
     public int drawy = 0;
     public int wallFlag = 0;
+    public Decoration decoration;
     public Actor actor;
     private Random random;
     public Vector2f GetPos()
     {
         return new Vector2f(x, y);
     }
-    public Tile(int x, int y, Type type, Random gameRandom)
+    public Tile(int x, int y, Type type)
     {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.random = gameRandom;
+        random = Game.random;
         if (type == Type.Grass)
         {
             spriteVariation = Game.random.Next(2);

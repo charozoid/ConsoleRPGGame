@@ -17,7 +17,7 @@ class Graphics2D
     public Random random;
     public Tile[,] tiles = new Tile[128, 128];
     public Dictionary<Tile.Type, IntRect> tileTexture = new Dictionary<Tile.Type, IntRect>();
-    public Dictionary<int, IntRect> flagMap = new Dictionary<int, IntRect>();
+    public Dictionary<int, IntRect> wallFlagMap = new Dictionary<int, IntRect>();
     public Graphics2D()
     {
         player = Game.player;
@@ -34,17 +34,25 @@ class Graphics2D
         grassColors[2] = new Color(40, 150, 0, 255);
         tileTexture[Tile.Type.Grass] = GridToIntRect(7, 2);
         tileTexture[Tile.Type.Wall] = GridToIntRect(13, 12);
-        tileTexture[Tile.Type.StoneGround] = GridToIntRect(4, 0);
+        tileTexture[Tile.Type.StoneGround] = GridToIntRect(2, 11);
 
-        flagMap[0b1000] = GridToIntRect(7, 13);
-        flagMap[0b0100] = GridToIntRect(8, 13);
-        flagMap[0b1001] = GridToIntRect(12, 11);
-        flagMap[0b1010] = GridToIntRect(10, 11);
-        flagMap[0b0011] = GridToIntRect(11, 11);
-        flagMap[0b0101] = GridToIntRect(13, 12);
-        flagMap[0b1101] = GridToIntRect(10, 12);
-        flagMap[0b0111] = GridToIntRect(11, 12);
+        wallFlagMap[0b0001] = GridToIntRect(14, 11); //Right end
+        wallFlagMap[0b0010] = GridToIntRect(3, 11); //Top end
+        wallFlagMap[0b0011] = GridToIntRect(11, 11); //Top right corner
+        wallFlagMap[0b0100] = GridToIntRect(12, 11); //Left end
+        wallFlagMap[0b0101] = GridToIntRect(13, 12); //Horizontal
+        wallFlagMap[0b0110] = GridToIntRect(9, 12); //top left corner
+        wallFlagMap[0b0111] = GridToIntRect(2, 12); //horizontal bottom turn
+        wallFlagMap[0b1000] = GridToIntRect(0, 12); //Bottom end
+        wallFlagMap[0b1001] = GridToIntRect(13, 11);//Bottom right corner 
+        wallFlagMap[0b1010] = GridToIntRect(10, 11); // Vertical
+        wallFlagMap[0b1011] = GridToIntRect(9, 11); //Vertical wall left turn
+        wallFlagMap[0b1100] = GridToIntRect(4, 13); //bottom left corner
+        wallFlagMap[0b1101] = GridToIntRect(10, 12); //horizontal top turn
+        wallFlagMap[0b1110] = GridToIntRect(3, 12); //vertical right turn
+        wallFlagMap[0b1111] = GridToIntRect(14, 12);     
 
+        tiles[11, 11].decoration = new Decoration(GridToIntRect(6, 0), new Color(200, 150, 0, 255));
         for (int i = 0; i < tiles.GetLength(0); i++)
         {
             for (int j = 0; j < tiles.GetLength(1); j++)
@@ -53,16 +61,7 @@ class Graphics2D
                 tile.wallFlag = GetWallFlags(tile, i, j);
             }
         }
-
-        IntRect[] wallTexture = new IntRect[6];
-        wallTexture[0] = GridToIntRect(13, 12);//Wall horizontal
-        wallTexture[1] = GridToIntRect(10, 11);//Wall vertical
-        wallTexture[2] = GridToIntRect(9, 12);//Top left corner
-        wallTexture[3] = GridToIntRect(11, 11);//Top right corner
-        wallTexture[4] = GridToIntRect(12, 11);//Bottom right corner
-        wallTexture[5] = GridToIntRect(8, 12);//Bottom left corner
     }
-
     public void DrawWallsAroundMap()
     {
 
@@ -74,7 +73,16 @@ class Graphics2D
             tiles[i, 127].type = Tile.Type.Wall;
         }
     }
-    public void DrawTilesAroundPlayer()
+
+    public void DrawDecoration(Decoration decoration)
+    {
+        Sprite sprite = new Sprite(tileset);
+        sprite.Color = decoration.color;
+        sprite.TextureRect = decoration.intRect;
+        sprite.Position = new Vector2f(decoration.x * 16, decoration.y * 16);
+        window.Draw(sprite);
+    }
+    public void DrawAroundPlayer()
     {
         Player player = Game.player;
         for (int i = player.x - 20; i < player.x + 20; i++)
@@ -99,7 +107,15 @@ class Graphics2D
                             tiles[i, j].actor.drawy = j - player.y + 20;
                             DrawActor(tiles[i, j].actor);
                         }
+
                     }
+                    if (tiles[i, j].decoration != null)
+                    {
+                        tiles[i, j].decoration.x = i - player.x + 20;
+                        tiles[i, j].decoration.y = j - player.y + 20;
+                        DrawDecoration(tiles[i, j].decoration);
+                    }
+
                 }               
             }
         }
@@ -118,7 +134,7 @@ class Graphics2D
             {
                 try
                 {
-                    tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]), random);
+                    tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]));
                 }
                 catch
                 {
@@ -176,21 +192,21 @@ class Graphics2D
     }
     public void DrawTile(Tile tile, int x, int y)
     {
-        if (tile.actor != null)
+        /*if (tile.actor != null)
         {
             return;
-        }
+        }*/
         Sprite sprite = new Sprite(tileset);
         switch (tile.type)
         {
             case Tile.Type.StoneGround:
-                sprite.Color = new Color(125, 125, 125, 255);
+                sprite.Color = new Color(75, 75, 75, 255);
                 sprite.TextureRect = tileTexture[Tile.Type.StoneGround];
                 break;
             case Tile.Type.Wall:
-                if (flagMap.ContainsKey(tile.wallFlag))
+                if (wallFlagMap.ContainsKey(tile.wallFlag))
                 {
-                    sprite.TextureRect = flagMap[tile.wallFlag];
+                    sprite.TextureRect = wallFlagMap[tile.wallFlag];
                 }
                 else
                 {
@@ -212,6 +228,10 @@ class Graphics2D
                 sprite.Color = grassColors[tile.colorVariation];
                 sprite.TextureRect = newTextureRect;                
                 break;
+            case Tile.Type.Door:
+                sprite.Color = new Color(125, 125, 125, 255);
+                sprite.TextureRect = GridToIntRect(5, 12);
+                break;
         }
         tile.sprite = sprite;
         sprite.Position = new Vector2f(tile.x * 16, tile.y * 16);
@@ -220,7 +240,7 @@ class Graphics2D
     public void DrawActor(Actor actor)
     {
         Sprite sprite = new Sprite(tileset);
-        sprite.TextureRect = GridToIntRect(actor.spritex, actor.spritey);
+        sprite.TextureRect = actor.intRect;
         tiles[actor.x, actor.y].actor = actor;
         if (actor.GetType() == typeof(Player))
         {
@@ -235,7 +255,8 @@ class Graphics2D
         window.Draw(sprite);
     }
 
-    public IntRect GridToIntRect(int x, int y)
+    
+    public static IntRect GridToIntRect(int x, int y)
     {
         return new IntRect(x * 16, y * 16, 16, 16);
     }

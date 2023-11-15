@@ -2,12 +2,12 @@
 
 class Npc : Actor
 {
-    public Npc(int x, int y)
+    public Npc(int posx, int posy, int spritex, int spritey, Color color) : base(posx, posy, spritex, spritey, color)
     {
-        this.x = x;
-        this.y = y;
-        spritex = 1;
-        spritey = 0;
+        x = posx;
+        y = posy;
+        spritex = spritex;
+        spritey = spritey;
         spriteColor = new Color(255, 204, 156, 255);
     }
 }
