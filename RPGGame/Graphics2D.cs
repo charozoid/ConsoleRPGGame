@@ -32,7 +32,7 @@ class Graphics2D
         grassColors[0] = new Color(40, 123, 0, 255);
         grassColors[1] = new Color(40, 180, 0, 255);
         grassColors[2] = new Color(40, 150, 0, 255);
-        tileTexture[Tile.Type.Grass] = GridToIntRect(7, 2);
+        tileTexture[Tile.Type.Grass] = GridToIntRect(5, 2);
         tileTexture[Tile.Type.Wall] = GridToIntRect(13, 12);
         tileTexture[Tile.Type.StoneGround] = GridToIntRect(2, 11);
 
@@ -197,9 +197,14 @@ class Graphics2D
             return;
         }*/
         Sprite sprite = new Sprite(tileset);
+        Sprite sprite2 = new Sprite(tileset);
         switch (tile.type)
         {
             case Tile.Type.StoneGround:
+                sprite2.Color = new Color(155, 155, 155, 255);
+                sprite2.TextureRect = GridToIntRect(11, 13);
+                sprite2.Position = new Vector2f(tile.x * 16, tile.y * 16);
+                window.Draw(sprite2);
                 sprite.Color = new Color(75, 75, 75, 255);
                 sprite.TextureRect = tileTexture[Tile.Type.StoneGround];
                 break;
@@ -223,7 +228,7 @@ class Graphics2D
                 }
                 if (tile.spriteVariation == 1)
                 {
-                    newTextureRect.Left += 5 * 16;
+                    newTextureRect.Left += 2 * 16;
                 }
                 sprite.Color = grassColors[tile.colorVariation];
                 sprite.TextureRect = newTextureRect;                
