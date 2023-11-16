@@ -11,7 +11,8 @@ class Tile
         Wall, //2
         Grass, //3
         StoneGround,//4
-        Door //5
+        Door, //5,
+        Cursor
     }
 
     public Sprite sprite;

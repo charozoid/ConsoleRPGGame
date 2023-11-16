@@ -4,7 +4,7 @@ using SFML.System;
 
 class Graphics2D
 {
-    const int WIDTH = 720;
+    const int WIDTH = 880;
     const int HEIGHT = 640;
     const string TITLE = "Game";
     private VideoMode mode = new VideoMode(WIDTH, HEIGHT);
@@ -28,14 +28,14 @@ class Graphics2D
         window.SetVerticalSyncEnabled(true);
         window.Closed += (sender, args) => window.Close();
         ImportMap();
-        DrawWallsAroundMap();
-        grassColors[0] = new Color(40, 123, 0, 255);
-        grassColors[1] = new Color(40, 180, 0, 255);
-        grassColors[2] = new Color(40, 150, 0, 255);
-        tileTexture[Tile.Type.Grass] = GridToIntRect(5, 2);
-        tileTexture[Tile.Type.Wall] = GridToIntRect(13, 12);
-        tileTexture[Tile.Type.StoneGround] = GridToIntRect(2, 11);
+        InitializeWallFlags();
+        InitializeTileSpritesMap();
+        InitializeGrassColorArray();
 
+        tiles[11, 11].decoration = new Decoration(GridToIntRect(6, 0), new Color(200, 150, 0, 255));
+    }
+    public void InitializeWallFlags()
+    {
         wallFlagMap[0b0001] = GridToIntRect(14, 11); //Right end
         wallFlagMap[0b0010] = GridToIntRect(3, 11); //Top end
         wallFlagMap[0b0011] = GridToIntRect(11, 11); //Top right corner
@@ -50,17 +50,29 @@ class Graphics2D
         wallFlagMap[0b1100] = GridToIntRect(4, 13); //bottom left corner
         wallFlagMap[0b1101] = GridToIntRect(10, 12); //horizontal top turn
         wallFlagMap[0b1110] = GridToIntRect(3, 12); //vertical right turn
-        wallFlagMap[0b1111] = GridToIntRect(14, 12);     
+        wallFlagMap[0b1111] = GridToIntRect(14, 12);
 
-        tiles[11, 11].decoration = new Decoration(GridToIntRect(6, 0), new Color(200, 150, 0, 255));
         for (int i = 0; i < tiles.GetLength(0); i++)
         {
             for (int j = 0; j < tiles.GetLength(1); j++)
             {
                 Tile tile = tiles[i, j];
-                tile.wallFlag = GetWallFlags(tile, i, j);
+                tile.wallFlag = GetWallFlags(tile);
             }
         }
+    }
+    public void InitializeTileSpritesMap()
+    {
+        tileTexture[Tile.Type.Grass] = GridToIntRect(5, 2);
+        tileTexture[Tile.Type.Wall] = GridToIntRect(13, 12);
+        tileTexture[Tile.Type.StoneGround] = GridToIntRect(2, 11);
+    }
+
+    public void InitializeGrassColorArray()
+    {
+        grassColors[0] = new Color(40, 123, 0, 255);
+        grassColors[1] = new Color(40, 180, 0, 255);
+        grassColors[2] = new Color(40, 150, 0, 255);
     }
     public void DrawWallsAroundMap()
     {
@@ -96,8 +108,8 @@ class Graphics2D
                 }
                 else
                 {
-                    tiles[i, j].x = i - player.x + 20;
-                    tiles[i, j].y = j - player.y + 20;
+                    tiles[i, j].drawx = i - player.x + 20;
+                    tiles[i, j].drawy = j - player.y + 20;
                     DrawTile(tiles[i, j], i, j);
                     if (tiles[i, j].actor != null)
                     {
@@ -135,6 +147,8 @@ class Graphics2D
                 try
                 {
                     tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]));
+                    tiles[j, i].x = j;
+                    tiles[j, i].y = i;
                 }
                 catch
                 {
@@ -157,13 +171,16 @@ class Graphics2D
         return new IntRect(sprite.Left + 16, sprite.Top + 16, -16, -16);
     }
 
-    public int GetWallFlags(Tile tile, int x, int y)
+    public static int GetWallFlags(Tile tile)
     {
         int flags = 0b0000;
+        int x = tile.x;
+        int y = tile.y;
         bool moveLeft = x - 1 >= 0;
         bool moveRight = x + 1 < 128;
         bool moveUp = y - 1 >= 0;
         bool moveDown = y + 1 < 128;
+
         if (moveUp && tiles[x, y - 1].type == Tile.Type.Wall)
         {
             flags = flags | 0b1000;
@@ -180,8 +197,6 @@ class Graphics2D
         {
             flags = flags | 0b0001;
         }
-
-
         return flags;
     }
     public Texture CreateMask(Texture tileset)
@@ -203,7 +218,6 @@ class Graphics2D
             case Tile.Type.StoneGround:
                 sprite2.Color = new Color(155, 155, 155, 255);
                 sprite2.TextureRect = GridToIntRect(11, 13);
-                sprite2.Position = new Vector2f(tile.x * 16, tile.y * 16);
                 window.Draw(sprite2);
                 sprite.Color = new Color(75, 75, 75, 255);
                 sprite.TextureRect = tileTexture[Tile.Type.StoneGround];
@@ -237,10 +251,42 @@ class Graphics2D
                 sprite.Color = new Color(160, 160, 160, 255);
                 sprite.TextureRect = GridToIntRect(5, 12);
                 break;
+
+            case Tile.Type.Cursor:
+                sprite.Color = new Color(255, 0, 0, 255);
+                sprite.TextureRect = GridToIntRect(4, 0);
+                break;
         }
         tile.sprite = sprite;
-        sprite.Position = new Vector2f(tile.x * 16, tile.y * 16);
+        sprite.Position = new Vector2f(tile.drawx * 16, tile.drawy * 16);
         window.Draw(sprite);
+    }
+
+    public void UpdateWallFlag(Tile tile)
+    {
+        tile.wallFlag = GetWallFlags(tile);
+    }
+
+    public static void UpdateNeighborWallTiles(Tile tile)
+    {
+        int x = tile.x;
+        int y = tile.y;
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                if (i == 0 && j == 0)
+                {
+                    continue;
+                }
+                int neighborx = x + i;
+                int neighbory = y + j;
+                if (neighborx >= 0 && neighborx < Game.GAME_SIZE && neighbory >= 0 && neighbory < Game.GAME_SIZE)
+                {
+                    tiles[neighborx, neighbory].wallFlag = GetWallFlags(tiles[neighborx, neighbory]);
+                }
+            }
+        }
     }
     public void DrawActor(Actor actor)
     {
@@ -259,8 +305,6 @@ class Graphics2D
         sprite.Color = actor.spriteColor;
         window.Draw(sprite);
     }
-
-    
     public static IntRect GridToIntRect(int x, int y)
     {
         return new IntRect(x * 16, y * 16, 16, 16);

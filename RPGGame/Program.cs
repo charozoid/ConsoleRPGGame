@@ -22,6 +22,12 @@ class Program
                     break;
                 case (Game.State.MainMenu):
                     break;
+                case (Game.State.Editor):
+
+                    game.graphics2D.window.Clear(new Color(0, 0, 0, 255));
+                    game.graphics2D.DrawAroundPlayer();
+                    game.graphics2D.DrawActor(Game.player);
+                    break;
             }           
             game.graphics2D.window.DispatchEvents();
             game.graphics2D.window.Display();

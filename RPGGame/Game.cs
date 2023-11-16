@@ -18,8 +18,8 @@ class Game
 
     public State state = State.InGame;
     public static Player player;
-    public static string mapPath = @"../../Assets/map.txt";
-    public static string actorsPath = @"../../Assets/actors.txt";
+    public const string mapPath = @"../../Assets/map.txt";
+    public const string actorsPath = @"../../Assets/actors.txt";
 
     public Graphics2D graphics2D;
     public static Random random = new Random();
@@ -28,8 +28,19 @@ class Game
         random = new Random();
         graphics2D = new Graphics2D();
         graphics2D.random = random;
-        player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
-        graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
+
+        switch (state)          
+        {
+            case State.InGame:
+                player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
+                graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
+                break;
+            case State.Editor:
+                player = new Player(20, 20, 4, 0, new Color(255, 255, 255, 255));
+                graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(Editor.KeyPressed);
+                break;         
+        }
+
         LoadActors();
     }
     public void KeyPressed(object sender, SFML.Window.KeyEventArgs e)
