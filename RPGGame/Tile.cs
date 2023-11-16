@@ -3,7 +3,6 @@ using SFML.System;
 
 class Tile
 {
-
     public enum Type
     {
         Empty, //0
@@ -14,8 +13,6 @@ class Tile
         Door, //5,
         Cursor
     }
-
-    public Sprite sprite;
     public int x;
     public int y;
     public Type type;

@@ -16,7 +16,7 @@ class Game
 
     public static List<Actor> actors = new List<Actor>();
 
-    public State state = State.InGame;
+    public State state = State.Editor;
     public static Player player;
     public const string mapPath = @"../../Assets/map.txt";
     public const string actorsPath = @"../../Assets/actors.txt";
@@ -28,18 +28,6 @@ class Game
         random = new Random();
         graphics2D = new Graphics2D();
         graphics2D.random = random;
-
-        switch (state)          
-        {
-            case State.InGame:
-                player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
-                graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
-                break;
-            case State.Editor:
-                player = new Player(20, 20, 4, 0, new Color(255, 255, 255, 255));
-                graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(Editor.KeyPressed);
-                break;         
-        }
 
         LoadActors();
     }
@@ -111,7 +99,7 @@ class Game
         }
     }
 
-    public void SaveMap()
+    public static void SaveMap()
     {
         File.Delete(mapPath);
         using (FileStream fs = File.Create(mapPath))
