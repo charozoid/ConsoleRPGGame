@@ -10,15 +10,16 @@ class Game
     public enum State
     {
         MainMenu,
-        InGame
+        InGame,
+        Editor
     }
 
-    public List<Actor> actors = new List<Actor>();
+    public static List<Actor> actors = new List<Actor>();
 
     public State state = State.InGame;
-    public static Player player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
-    public Npc npc = new Npc(6, 3, 2, 0, new Color(255, 204, 156, 255));
-    public Actor chest = new Actor(5, 3, 2, 9, new Color(200, 200, 20, 255));
+    public static Player player;
+    public static string mapPath = @"../../Assets/map.txt";
+    public static string actorsPath = @"../../Assets/actors.txt";
 
     public Graphics2D graphics2D;
     public static Random random = new Random();
@@ -27,17 +28,15 @@ class Game
         random = new Random();
         graphics2D = new Graphics2D();
         graphics2D.random = random;
+        player = new Player(20, 20, 0, 4, new Color(255, 204, 156, 255));
         graphics2D.window.KeyPressed += new EventHandler<KeyEventArgs>(KeyPressed);
-        graphics2D.tiles[npc.x, npc.y].actor = npc;
-        graphics2D.tiles[chest.x, chest.y].actor = chest;
-        actors.Add(player);
-        actors.Add(npc);
+        LoadActors();
     }
     public void KeyPressed(object sender, SFML.Window.KeyEventArgs e)
     {
         int x = player.x;
         int y = player.y;
-        Tile[,] tiles = graphics2D.tiles;
+        Tile[,] tiles = Graphics2D.tiles;
         switch (e.Code)
         {
             case Keyboard.Key.Up:
@@ -95,6 +94,65 @@ class Game
                 player.Move(x + 1, y);
                 Console.WriteLine("Moved");
                 break;
+            case Keyboard.Key.Enter:
+                SaveActors();
+                break;
+        }
+    }
+
+    public void SaveMap()
+    {
+        File.Delete(mapPath);
+        using (FileStream fs = File.Create(mapPath))
+        {
+            fs.Close();
+        }
+
+        string[] mapData = new string[128];
+        for (int i = 0; i < 128; i++)
+        {
+            string line = "";
+            for (int j = 0; j < 128; j++)
+            {
+                line += $"{(int)Graphics2D.tiles[i, j].type}";
+                if (j < 127)
+                {
+                    line += $",";
+                }
+            }
+            mapData[i] = line;
+        }
+        File.AppendAllLines(mapPath, mapData);
+    }
+    public void SaveActors()
+    {
+        string[] stringArr = new string[actors.Count];
+        int index = 0;
+        foreach (Actor actor in actors.Take(actors.Count))
+        {
+                string saveData = $"{actor.x},{actor.y},{actor.intRect.Left / 16},{actor.intRect.Top / 16}".Trim();
+                stringArr[index] = saveData;
+                index++;
+        }
+        File.WriteAllLines(actorsPath, stringArr);
+    }
+    public void LoadActors()
+    {
+        string[] lines = File.ReadAllLines(actorsPath);
+        int cols = lines[0].Split(',').Length;
+        int[] data = new int[cols];
+        foreach (string line in lines)
+        {
+            string[] values = line.Split(",");
+            int x = int.Parse(values[0]);
+            int y = int.Parse(values[1]);
+            int rectLeft = int.Parse(values[2]);
+            int rectRight = int.Parse(values[3]);
+            byte r = byte.Parse(values[4]);
+            byte g = byte.Parse(values[5]);
+            byte b = byte.Parse(values[6]);
+            Actor actor = new Actor(x, y, rectLeft, rectRight, new Color(r, g, b));
+            Graphics2D.tiles[x, y].actor = actor;
         }
     }
 }

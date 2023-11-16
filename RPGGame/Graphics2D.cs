@@ -15,7 +15,7 @@ class Graphics2D
     private Color[] grassColors = new Color[3];
     public Player player;
     public Random random;
-    public Tile[,] tiles = new Tile[128, 128];
+    public static Tile[,] tiles = new Tile[128, 128];
     public Dictionary<Tile.Type, IntRect> tileTexture = new Dictionary<Tile.Type, IntRect>();
     public Dictionary<int, IntRect> wallFlagMap = new Dictionary<int, IntRect>();
     public Graphics2D()
@@ -234,7 +234,7 @@ class Graphics2D
                 sprite.TextureRect = newTextureRect;                
                 break;
             case Tile.Type.Door:
-                sprite.Color = new Color(125, 125, 125, 255);
+                sprite.Color = new Color(160, 160, 160, 255);
                 sprite.TextureRect = GridToIntRect(5, 12);
                 break;
         }

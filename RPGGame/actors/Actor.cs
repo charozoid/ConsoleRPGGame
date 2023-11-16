@@ -14,8 +14,6 @@ class Actor
     public int drawy = 0;
 
     public IntRect intRect = new IntRect();
-    public int spritex = 0;
-    public int spritey = 0;
 
     public Actor(int posx, int posy, int spritex, int spritey, Color color)
     {
@@ -23,6 +21,9 @@ class Actor
         y = posy;
         spriteColor = color;
         intRect = Graphics2D.GridToIntRect(spritex, spritey);
+        Graphics2D.tiles[posx, posy].actor = this;
+        if (this.GetType() != typeof(Player))
+            Game.actors.Add(this);
     }
     void Draw()
     {

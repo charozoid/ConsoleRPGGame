@@ -11,8 +11,6 @@ class Player : Actor
     {
         x = posx;
         y = posy;
-        this.spritex = spritex;
-        this.spritey = spritey;
         spriteColor = color;
     }
     public void GiveItem(Item item, int quantity)
