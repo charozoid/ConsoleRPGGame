@@ -108,13 +108,19 @@ class Game
             fs.Close();
         }
 
+        Tile[,] tiles = Graphics2D.tiles;
         string[] mapData = new string[128];
         for (int i = 0; i < 128; i++)
         {
             string line = "";
             for (int j = 0; j < 128; j++)
             {
-                line += $"{(int)Graphics2D.tiles[j, i].type}";
+                line += $"{(int)tiles[j, i].type}";
+                if (tiles[j, i].color != Color.White)
+                {
+                    Color color = tiles[j, i].color;
+                    line += $";{color.R};{color.G};{color.B}";
+                }
                 if (j < 127)
                 {
                     line += $",";

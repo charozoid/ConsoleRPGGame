@@ -45,7 +45,7 @@ class Program
             }           
             window.DispatchEvents();
             window.Display();
-            Console.WriteLine($"x : {Game.player.x}, y : {Game.player.y}");
+            //Console.WriteLine($"x : {Game.player.x}, y : {Game.player.y}");
         }
     }
 }

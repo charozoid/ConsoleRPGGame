@@ -117,7 +117,7 @@ class Graphics2D
                 {
                     tiles[i, j].drawx = i - player.x + 20;
                     tiles[i, j].drawy = j - player.y + 20;
-                    DrawTile(tiles[i, j], i, j);
+                    DrawTile(tiles[i, j]);
                     if (tiles[i, j].actor != null)
                     {
                         if (tiles[i, j].actor.GetType() != typeof(Player))
@@ -153,9 +153,25 @@ class Graphics2D
             {
                 try
                 {
-                    tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]));
-                    tiles[j, i].x = j;
-                    tiles[j, i].y = i;
+                    if (values[j].Contains(";"))
+                    {
+                        string[] data = values[j].Split(";");
+                        Tile.Type type = (Tile.Type)int.Parse(data[0]);
+                        Color color = new Color(byte.Parse(data[1]), byte.Parse(data[2]), byte.Parse(data[3]));
+                        tiles[j, i] = new Tile(j, i, type, color);
+                        Tile tile = tiles[j, i];
+                        tile.x = j;
+                        tile.y = i;
+                        tile.color = color;
+                        tile.type = type;
+                    }
+                    else
+                    {
+                        tiles[j, i] = new Tile(j, i, (Tile.Type)int.Parse(values[j]), new Color(255,255,255));
+                        tiles[j, i].x = j;
+                        tiles[j, i].y = i;
+                    }
+
                 }
                 catch
                 {
@@ -213,15 +229,18 @@ class Graphics2D
     }
 
 
-    public void DrawTile(Tile tile, int x, int y)
+    public void DrawTile(Tile tile)
     {
         /*if (tile.actor != null)
         {
             return;
         }*/
         Sprite sprite = new Sprite(tileset);
-        sprite.TextureRect = tileTexture[tile.type];
         Sprite sprite2 = new Sprite(tileset);
+
+        sprite.TextureRect = tileTexture[tile.type];
+        sprite.Color = tile.color;
+        sprite.Position = new Vector2f(tile.drawx * 16, tile.drawy * 16);
         switch (tile.type)
         {
             case Tile.Type.StoneGround:
@@ -229,13 +248,11 @@ class Graphics2D
                 sprite2.TextureRect = GridToIntRect(11, 13);
                 sprite2.Position = new Vector2f(tile.drawx * 16, tile.drawy * 16);
                 window.Draw(sprite2);
-                sprite.Color = new Color(75, 75, 75, 255);
                 break;
             case Tile.Type.Wall:
                 if (!wallFlagMap.ContainsKey(tile.wallFlag))
                     return;
                 sprite.TextureRect = wallFlagMap[tile.wallFlag];
-                sprite.Color = new Color(125, 125, 125, 255);
                 break;
             case Tile.Type.Grass:
                 IntRect newTextureRect = tileTexture[tile.type];
@@ -251,15 +268,8 @@ class Graphics2D
                 sprite.Color = grassColors[tile.colorVariation];
                 sprite.TextureRect = newTextureRect;                
                 break;
-            case Tile.Type.Door:
-                sprite.Color = new Color(160, 160, 160, 255);
-                break;
-
-            case Tile.Type.Cursor:
-                sprite.Color = new Color(255, 0, 0, 255);
-                break;
         }
-        sprite.Position = new Vector2f(tile.drawx * 16, tile.drawy * 16);
+
         window.Draw(sprite);
     }
     public static void UpdateWallFlag(Tile tile)

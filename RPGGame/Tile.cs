@@ -25,6 +25,7 @@ class Tile
     public int drawx = 0;
     public int drawy = 0;
     public int wallFlag = 0;
+    public Color color = Color.White;
     public Decoration decoration;
     public Actor actor;
     private Random random;
@@ -32,11 +33,12 @@ class Tile
     {
         return new Vector2f(x, y);
     }
-    public Tile(int x, int y, Type type)
+    public Tile(int x, int y, Type type, Color color)
     {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.color = color;
         random = Game.random;
         if (type == Type.Grass)
         {

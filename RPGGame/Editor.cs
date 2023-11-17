@@ -20,8 +20,16 @@ class Editor
     private Text saveString = new Text("S.Save", Graphics2D.font, 16);
     private Text quitString = new Text("Esc.Exit", Graphics2D.font, 16);
     private Font font = Graphics2D.font;
+    private static DateTime lastKeyPressTime = DateTime.MinValue;
+    private static TimeSpan debounceDelay = TimeSpan.FromMilliseconds(50);
+    private Color selectedColor = Color.White;
+    int colorValuesIndex = 0;
+    int colorTypeIndex = 0;
+    byte[] colorValues = new byte[3];
     private int selection = 0;
+    private bool isTyping = false;
     public RenderWindow window;
+    private string enteredText = "";
 
     public Editor(RenderWindow window)
     {
@@ -51,7 +59,7 @@ class Editor
         {
             string str = $"{i + 1}.{Enum.GetName(typeof(Tile.Type), i)}";
             Text text = new Text(str, font, 14);
-            sprite.Color = new Color(155, 155, 155, 255);
+            sprite.Color = selectedColor;
             sprite.TextureRect = Graphics2D.tileTexture[(Tile.Type)i];
             if (i == selection)
             {
@@ -72,6 +80,48 @@ class Editor
         }
         window.Draw(title);
     }
+    public void ColorPrompt(object sender, TextEventArgs e)
+    {
+        if (!isTyping)
+            return;
+        if ((DateTime.Now - lastKeyPressTime).TotalMilliseconds < debounceDelay.TotalMilliseconds)
+        {
+            return;
+        }
+        if (e.Unicode == "c")
+        {
+            return;
+        }
+        enteredText += e.Unicode;
+        if (enteredText.Length == 3) 
+        {
+            bool success = byte.TryParse(enteredText, out colorValues[colorValuesIndex]);
+            if (!success)
+            {
+                enteredText = "";
+            }
+            else
+            {
+                colorValuesIndex++;
+                if (colorValuesIndex == 3)
+                {
+                    selectedColor = new Color(colorValues[0], colorValues[1], colorValues[2]);
+                    isTyping = false;
+                    colorValuesIndex = 0;
+                }
+                enteredText = "";
+            }
+
+
+        }
+        lastKeyPressTime = DateTime.Now;
+    }
+    public void EnterColorValue(RenderWindow window)
+    {
+        enteredText = "";
+        isTyping = true;
+        window.TextEntered += ColorPrompt;
+    }
     public void KeyPressed(object sender, SFML.Window.KeyEventArgs e)
     {
         Player player = Game.player;
@@ -79,6 +129,8 @@ class Editor
         int y = player.y;
 
         Tile[,] tiles = Graphics2D.tiles;
+        if (isTyping)
+            return;
         switch (e.Code)
         {
             case Keyboard.Key.Up:
@@ -148,13 +200,18 @@ class Editor
                     for (int i = firstSelectx; i < oldPlayerx + 1; i++)
                     {
                         for (int j = firstSelecty; j < oldPlayery + 1; j++)
-                        {           
+                        {
+                            tiles[i, j].color = selectedColor;
                             tiles[i, j].type = (Tile.Type)(selection);
                             Graphics2D.UpdateWallFlagsAroundTile(tiles[i, j]);
                         }
                     }
                     hasSelectedTile = false;
                 }
+                break;
+
+            case Keyboard.Key.C:
+                EnterColorValue(window);
                 break;
             case Keyboard.Key.Num1:
                 selection = 0;

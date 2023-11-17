@@ -6,8 +6,6 @@ class Npc : Actor
     {
         x = posx;
         y = posy;
-        spritex = spritex;
-        spritey = spritey;
         spriteColor = new Color(255, 204, 156, 255);
     }
 }
