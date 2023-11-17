@@ -31,8 +31,6 @@ class Graphics2D
         InitializeWallFlags();
         InitializeTileSpritesMap();
         InitializeGrassColorArray();
-
-        tiles[11, 11].decoration = new Decoration(GridToIntRect(6, 0), new Color(200, 150, 0, 255));
     }
     public void InitializeWallFlags()
     {

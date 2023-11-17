@@ -20,6 +20,7 @@ class Game
     public static Player player;
     public const string mapPath = @"../../Assets/map.txt";
     public const string actorsPath = @"../../Assets/actors.txt";
+    public const string decorationsPath = @"../../Assets/decorations.txt";
 
     public Graphics2D graphics2D;
     public static Random random = new Random();
@@ -113,7 +114,7 @@ class Game
             string line = "";
             for (int j = 0; j < 128; j++)
             {
-                line += $"{(int)Graphics2D.tiles[i, j].type}";
+                line += $"{(int)Graphics2D.tiles[j, i].type}";
                 if (j < 127)
                 {
                     line += $",";
@@ -122,6 +123,26 @@ class Game
             mapData[i] = line;
         }
         File.AppendAllLines(mapPath, mapData);
+    }
+    public void SaveDecorations()
+    {
+        File.Delete(decorationsPath);
+        using (FileStream fs = File.Create(decorationsPath))
+        {
+            fs.Close();
+        }
+        for (int i = 0; i < 128; i++)
+        {
+            for (int j = 0; j < 128; j++)
+            {
+                Tile tiles = Graphics2D.tiles[i,j];
+                if (tiles.decoration != null)
+                {
+                    File.AppendAllText(decorationsPath, $"{tiles.decoration.type}");
+                }
+            }
+        }
+
     }
     public void SaveActors()
     {
