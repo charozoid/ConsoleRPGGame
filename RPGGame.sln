@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		RPGGame\bin\Assets\actors.txt = RPGGame\bin\Assets\actors.txt
 		RPGGame\bin\Assets\Fonts\arialbd.ttf = RPGGame\bin\Assets\Fonts\arialbd.ttf
+		RPGGame\bin\Assets\decorations.txt = RPGGame\bin\Assets\decorations.txt
 		RPGGame\bin\Assets\map.txt = RPGGame\bin\Assets\map.txt
 		RPGGame\bin\Assets\tileset.png = RPGGame\bin\Assets\tileset.png
 	EndProjectSection

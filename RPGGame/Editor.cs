@@ -185,12 +185,11 @@ class Editor
                 break;
             case Keyboard.Key.S:
                 Game.SaveMap();
+                Game.SaveDecorations();
                 break;
             case Keyboard.Key.Escape:
                 window.Close();
                 break;
-
-
         }
     }
 }

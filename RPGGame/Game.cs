@@ -29,8 +29,8 @@ class Game
         random = new Random();
         graphics2D = new Graphics2D();
         graphics2D.random = random;
-
         LoadActors();
+        LoadDecorations();
     }
     public void KeyPressed(object sender, SFML.Window.KeyEventArgs e)
     {
@@ -124,7 +124,7 @@ class Game
         }
         File.AppendAllLines(mapPath, mapData);
     }
-    public void SaveDecorations()
+    public static void SaveDecorations()
     {
         File.Delete(decorationsPath);
         using (FileStream fs = File.Create(decorationsPath))
@@ -135,10 +135,13 @@ class Game
         {
             for (int j = 0; j < 128; j++)
             {
-                Tile tiles = Graphics2D.tiles[i,j];
-                if (tiles.decoration != null)
+                Tile tile = Graphics2D.tiles[i,j];
+                if (tile.decoration != null)
                 {
-                    File.AppendAllText(decorationsPath, $"{tiles.decoration.type}");
+                    byte r = tile.decoration.color.R;
+                    byte g = tile.decoration.color.G;
+                    byte b = tile.decoration.color.B;
+                    File.AppendAllText(decorationsPath, $"{(int)tile.decoration.type},{tile.x},{tile.y},{r},{g},{b}\n");
                 }
             }
         }
@@ -173,6 +176,24 @@ class Game
             byte b = byte.Parse(values[6]);
             Actor actor = new Actor(x, y, rectLeft, rectRight, new Color(r, g, b));
             Graphics2D.tiles[x, y].actor = actor;
+        }
+    }
+    public void LoadDecorations()
+    {
+        string[] lines = File.ReadAllLines(decorationsPath);
+        int cols = lines[0].Split(',').Length;
+        int[] data = new int[cols];
+        foreach (string line in lines)
+        {
+            string[] values = line.Split(",");
+            int type = int.Parse(values[0]);
+            int x = int.Parse(values[1]);
+            int y = int.Parse(values[2]);
+            byte r = byte.Parse(values[3]);
+            byte g = byte.Parse(values[4]);
+            byte b = byte.Parse(values[5]);
+            Decoration decoration = new Decoration(x, y, new Color(r,g,b), (Decoration.Type)(type));
+            Graphics2D.tiles[x, y].decoration = decoration;
         }
     }
 }

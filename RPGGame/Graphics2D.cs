@@ -18,6 +18,7 @@ class Graphics2D
     public static Tile[,] tiles = new Tile[128, 128];
     public static Dictionary<Tile.Type, IntRect> tileTexture = new Dictionary<Tile.Type, IntRect>();
     public static Dictionary<int, IntRect> wallFlagMap = new Dictionary<int, IntRect>();
+    public Dictionary<Decoration.Type, IntRect> decoTypeSprite = new Dictionary<Decoration.Type, IntRect>();
     public Graphics2D()
     {
         player = Game.player;
@@ -31,6 +32,7 @@ class Graphics2D
         InitializeWallFlags();
         InitializeTileSpritesMap();
         InitializeGrassColorArray();
+        InitializeDecorationSprites();
     }
     public void InitializeWallFlags()
     {
@@ -59,6 +61,10 @@ class Graphics2D
                 tile.wallFlag = GetWallFlags(tile);
             }
         }
+    }
+    public void InitializeDecorationSprites()
+    {
+        decoTypeSprite[Decoration.Type.Mushroom] = GridToIntRect(6,0);
     }
     public void InitializeTileSpritesMap()
     {
@@ -91,8 +97,8 @@ class Graphics2D
     {
         Sprite sprite = new Sprite(tileset);
         sprite.Color = decoration.color;
-        sprite.TextureRect = decoration.intRect;
-        sprite.Position = new Vector2f(decoration.x * 16, decoration.y * 16);
+        sprite.TextureRect = decoTypeSprite[decoration.type];
+        sprite.Position = new Vector2f(decoration.drawx * 16, decoration.drawy * 16);
         window.Draw(sprite);
     }
     public void DrawAroundPlayer()
@@ -124,8 +130,8 @@ class Graphics2D
                     }
                     if (tiles[i, j].decoration != null)
                     {
-                        tiles[i, j].decoration.x = i - player.x + 20;
-                        tiles[i, j].decoration.y = j - player.y + 20;
+                        tiles[i, j].decoration.drawx = i - player.x + 20;
+                        tiles[i, j].decoration.drawy = j - player.y + 20;
                         DrawDecoration(tiles[i, j].decoration);
                     }
 
